@@ -1,4 +1,4 @@
-# Default .github community repo for cheqd
+# Spec compliant SD-JWT type-rich implementation for TypeScript
 
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/cheqd/.github?color=green&label=stable%20release&style=flat-square)](https://github.com/cheqd/.github/releases/latest) ![GitHub Release Date](https://img.shields.io/github/release-date/cheqd/.github?color=green&style=flat-square) [![GitHub license](https://img.shields.io/github/license/cheqd/.github?color=blue&style=flat-square)](https://github.com/cheqd/.github/blob/main/LICENSE)
 
@@ -8,7 +8,31 @@
 
 ## ℹ️ Overview
 
-Default template for cheqd repos
+### Further information
+
+Checkout the [documentation regarding SD-JWTs](https://docs.walt.id/v/ssikit/concepts/selective-disclosure), to find out more.
+
+## What is the SD-JWT library?
+
+This libary implements the **Selective Disclosure JWT (SD-JWT)**
+specification:  [draft-ietf-oauth-selective-disclosure-jwt-04](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/04/).
+
+### Features
+
+* **Create and sign** SD-JWT tokens
+  * Choose selectively disclosable payload fields (SD fields)
+  * Create digests for SD fields and insert into JWT body payload
+  * Create and append encoded disclosure strings for SD fields to JWT token
+  * Add random or fixed number of **decoy digests** on each nested object property
+* **Present** SD-JWT tokens
+  * Selection of fields to be disclosed
+  * Support for appending optional holder binding
+* Full support for **nested SD fields** and **recursive disclosures**
+* **Parse** SD-JWT tokens and restore original payload with disclosed fields
+* **Verify** SD-JWT token
+  * Signature verification
+  * Hash comparison and tamper check of the appended disclosures
+* Support for **integration** with various crypto libraries and frameworks, to perform the cryptographic operations and key management
 
 ## 💬 Community
 

@@ -1,0 +1,46 @@
+{
+  "name": "sd-jwt-ts",
+  "version": "1.0.0",
+  "description": "[![GitHub release (latest by date)](https://img.shields.io/github/v/release/cheqd/.github?color=green&label=stable%20release&style=flat-square)](https://github.com/cheqd/.github/releases/latest) ![GitHub Release Date](https://img.shields.io/github/release-date/cheqd/.github?color=green&style=flat-square) [![GitHub license](https://img.shields.io/github/license/cheqd/.github?color=blue&style=flat-square)](https://github.com/cheqd/.github/blob/main/LICENSE)",
+  "main": "src/index.ts",
+  "type": "module",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+		"*": {
+			"*": [
+				"*",
+				"dist/*",
+				"dist/*/index"
+			]
+		}
+	},
+  "exports": {
+    "./node": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format": "prettier --write 'src/**/*.{js,ts,cjs,mjs}' 'tests/**/*.{js,ts,cjs,mjs}'"
+  },
+  "keywords": [
+    "sd-jwt",
+    "verifiable-credentials"
+  ],
+  "author": "Eengineer1",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "prettier": "^3.0.3",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "jose": "^5.1.0",
+    "uint8arrays": "^4.0.6"
+  }
+}
