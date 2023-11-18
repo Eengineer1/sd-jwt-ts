@@ -20,7 +20,7 @@ export class SDJwt extends Object {
 
 	readonly disclosureObjects: SDisclosure[];
 
-	readonly undisclosedPayload: JSONObject;
+	readonly undisclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] };
 
 	readonly fullPayload: JSONObject;
 
@@ -119,6 +119,7 @@ export class SDJwt extends Object {
 	 */
 	async verifyAsync(jwtCryptoProvider: AsyncJWTCryptoProvider): Promise<VerificationResult<SDJwt>> {
 		const jwtVerificationResult = await jwtCryptoProvider.verifyAsync(this.jwt);
+
 		return defaultVerificationResult(
 			this,
 			jwtVerificationResult.verified,

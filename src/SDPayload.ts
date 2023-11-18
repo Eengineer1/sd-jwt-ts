@@ -6,6 +6,7 @@ import { SDisclosure } from './SDisclosure.js';
 import { JSONObject, JSONValue } from './utils/types.js';
 import { createHash, getRandomValues } from 'crypto';
 import { DecoyMode } from './DecoyMode.js';
+import { isJSONObject, isSDDigestsValue } from './utils/eval.js';
 
 export class SDPayload {
 	/**
@@ -28,72 +29,83 @@ export class SDPayload {
 	 * @param undisclosedPayload undisclosed payload JSON object, as contained in the JWT body.
 	 * @param digestedDisclosures digested disclosures, as appended to the JWT.
 	 */
-	constructor(
-		readonly undisclosedPayload: JSONObject,
+	private constructor(
+		readonly undisclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] },
 		readonly digestedDisclosures: ReadonlyMap<string, SDisclosure> = new Map()
 	) {
-		this.sDisclosures = Object.values(digestedDisclosures);
-		this.fullPayload = this.disclosePayloadRecursively(undisclosedPayload, null);
+		this.sDisclosures = Array.from(digestedDisclosures.values());
+		this.fullPayload = this.disclosePayloadRecursively(undisclosedPayload, null)[0];
 		this.sdMap = SDMap.regenerateSDMap(undisclosedPayload, digestedDisclosures);
 	}
 
 	private disclosePayloadRecursively(
 		payload: JSONObject,
 		verificationDisclosureMap?: Map<string, SDisclosure> | null
-	): JSONObject {
-		const disclosedPayload: JSONObject = {};
+	): [JSONObject, Map<string, SDisclosure> | undefined | null] {
+		const disclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] } = {};
 		for (const [key, value] of Object.entries(payload)) {
 			if (key === SDJwt.DIGESTS_KEY) {
-				if (!Array.isArray(value)) {
-					throw new Error(`SD-JWT contains invalid ${SDJwt.DIGESTS_KEY} field`);
-				}
-
-				if (!value.every((digest) => typeof digest === 'string')) {
-					throw new Error(`SD-JWT contains invalid ${SDJwt.DIGESTS_KEY} field`);
-				}
+				if (!isSDDigestsValue(value)) throw new Error(`SD-JWT contains invalid ${SDJwt.DIGESTS_KEY} field`);
 
 				for (const digest of value) {
-					const unveiledDisclosure = this.unveilDisclosureIfPresent(
-						digest as string,
+					const [unveiledDisclosure, mutatedVerificationDisclosureMap] = this.unveilDisclosureIfPresent(
+						digest,
 						verificationDisclosureMap
-					);
+					) || [undefined, verificationDisclosureMap];
+
+					verificationDisclosureMap = mutatedVerificationDisclosureMap;
 
 					unveiledDisclosure && (disclosedPayload[unveiledDisclosure[0]] = unveiledDisclosure[1]);
 				}
 			}
 
 			disclosedPayload[key] =
-				value && typeof value === 'object' && !Array.isArray(value)
-					? this.disclosePayloadRecursively(value, verificationDisclosureMap)
+				value && isJSONObject(value)
+					? (function (that) {
+							const [disclosedValue, mutatedVerificationDisclosureMap] = that.disclosePayloadRecursively(
+								value,
+								verificationDisclosureMap
+							);
+							verificationDisclosureMap = mutatedVerificationDisclosureMap;
+							return disclosedValue;
+					  })(this)
 					: value;
 		}
-		return disclosedPayload;
+
+		delete disclosedPayload[SDJwt.DIGESTS_KEY];
+
+		return [disclosedPayload, verificationDisclosureMap];
 	}
 
 	private unveilDisclosureIfPresent(digest: string, verificationDisclosureMap?: Map<string, SDisclosure> | null) {
 		const sDisclosure = verificationDisclosureMap?.has(digest)
 			? verificationDisclosureMap.get(digest)!
-			: this.digestedDisclosures.get(digest);
+			: this.digestedDisclosures.get(digest) ||
+			  Array.from(this.digestedDisclosures.values()).find((sd) => sd.key === digest);
 
 		if (!sDisclosure) return undefined;
 
-		return sDisclosure.value && typeof sDisclosure.value === 'object' && !Array.isArray(sDisclosure.value)
+		verificationDisclosureMap?.delete(digest) ||
+			verificationDisclosureMap?.delete(
+				SDPayload.digest(
+					Array.from(this.digestedDisclosures.values()).find((sd) => sd.key === digest)?.disclosure!
+				)
+			);
+
+		return sDisclosure.value && isJSONObject(sDisclosure.value)
 			? (function (that) {
-					verificationDisclosureMap?.delete(digest);
-					return [
-						sDisclosure.key,
-						that.disclosePayloadRecursively(sDisclosure.value, verificationDisclosureMap),
-					] as const;
+					const [disclosedValue, mutatedVerificationDisclosureMap] = that.disclosePayloadRecursively(
+						sDisclosure.value,
+						verificationDisclosureMap
+					);
+					verificationDisclosureMap = mutatedVerificationDisclosureMap;
+					return [[sDisclosure.key, disclosedValue], verificationDisclosureMap] as const;
 			  })(this)
-			: ([sDisclosure.key, sDisclosure.value] as const);
+			: ([[sDisclosure.key, sDisclosure.value], verificationDisclosureMap] as const);
 	}
 
 	private filterDisclosures(currPayloadObject: JSONObject, sdMap: Map<string, SDField>): Set<string> {
-		if (
-			currPayloadObject[SDJwt.DIGESTS_KEY] &&
-			!Array.isArray(currPayloadObject[SDJwt.DIGESTS_KEY]) &&
-			!(currPayloadObject[SDJwt.DIGESTS_KEY] as string[])?.every((digest) => typeof digest === 'string')
-		)
+		if (currPayloadObject[SDJwt.DIGESTS_KEY] && !isSDDigestsValue(currPayloadObject[SDJwt.DIGESTS_KEY]))
 			throw new Error(`Invalid ${SDJwt.DIGESTS_KEY} format found`);
 
 		return new Set(
@@ -101,8 +113,7 @@ export class SDPayload {
 				.filter(
 					([key, value]) =>
 						value &&
-						typeof value === 'object' &&
-						!Array.isArray(value) &&
+						isJSONObject(value) &&
 						sdMap.has(key) &&
 						sdMap.get(key)!.children &&
 						sdMap.get(key)!.children!.size > 0
@@ -119,8 +130,7 @@ export class SDPayload {
 						?.flatMap((sd) =>
 							[sd.disclosure].concat(
 								sd.value &&
-									typeof sd.value === 'object' &&
-									!Array.isArray(sd.value) &&
+									isJSONObject(sd.value) &&
 									sdMap.get(sd.key)!.children &&
 									sdMap.get(sd.key)!.children!.size > 0
 									? Array.from(
@@ -158,9 +168,11 @@ export class SDPayload {
 	 * Verify digests in JWT payload match with disclosures appended to JWT.
 	 */
 	verifyDisclosures(): boolean {
-		const mutableDigestedDisclosures = new Map(this.digestedDisclosures);
-		this.disclosePayloadRecursively(this.undisclosedPayload, mutableDigestedDisclosures);
-		return mutableDigestedDisclosures.size === 0;
+		const [, mutableDigestedDisclosures] = this.disclosePayloadRecursively(
+			this.undisclosedPayload,
+			new Map(this.digestedDisclosures.entries())
+		);
+		return mutableDigestedDisclosures?.size === 0;
 	}
 
 	private static digest(value: string): string {
@@ -181,25 +193,24 @@ export class SDPayload {
 		key: string,
 		value: JSONValue,
 		digestsToDisclosures: Map<string, SDisclosure>
-	): string {
+	): [string, Map<string, SDisclosure>] {
 		const disclosure = SDPayload.generateDisclosure(key, value);
-		digestsToDisclosures.set(disclosure.disclosure, disclosure);
-		return SDPayload.digest(disclosure.disclosure);
+		const digest = SDPayload.digest(disclosure.disclosure);
+		return [SDPayload.digest(disclosure.disclosure), digestsToDisclosures.set(digest, disclosure)];
 	}
 
-	private static removeSDFields(payload: JSONObject, sdMap: SDMap): JSONObject {
+	private static removeSDFields(payload: JSONObject, sdMap: SDMap): JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] } {
 		return Object.fromEntries(
 			Object.entries(payload)
 				.filter(([key]) => !sdMap.has(key) || !sdMap.get(key)!.sd)
 				.map(([key, value]) => [
 					key,
 					value &&
-					typeof value === 'object' &&
-					!Array.isArray(value) &&
+					isJSONObject(value) &&
 					sdMap.has(key) &&
 					sdMap.get(key)!.children &&
 					sdMap.get(key)!.children!.size > 0
-						? SDPayload.removeSDFields(value, sdMap.get(key)!.children!)
+						? SDPayload.removeSDFields(value, sdMap.get(key)!.children || new SDMap(new Map()))
 						: value,
 				])
 		);
@@ -209,7 +220,7 @@ export class SDPayload {
 		payload: JSONObject,
 		sdMap: SDMap,
 		digestsToDisclosures: Map<string, SDisclosure>
-	): JSONObject {
+	): [JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] }, Map<string, SDisclosure>] {
 		const sdPayload = SDPayload.removeSDFields(payload, sdMap);
 		const digests = new Set<string>(
 			Object.keys(
@@ -218,28 +229,42 @@ export class SDPayload {
 						// iterate over all fields that are selectively disclosable and / or have nested selectively disclosable fields
 						.filter(
 							([key]) =>
-								sdMap.has(key) &&
-								sdMap.get(key)!.sd &&
-								sdMap.get(key)!.children &&
-								sdMap.get(key)!.children!.size > 0
+								(sdMap.has(key) && sdMap.get(key)!.sd) ||
+								(sdMap.get(key)?.children && (sdMap.get(key)?.children?.size || 0) > 0)
 						)
 						.map(([key, value]) => {
 							// if field is not an object, digest it, otherwise recursively generate digests, disclosures, if applicable
-							return (value && typeof value !== 'object' && !Array.isArray(value)) ||
+							return (value && !isJSONObject(value)) ||
 								!sdMap.get(key)?.children ||
 								sdMap.get(key)!.children!.size === 0
-								? ([key, SDPayload.digestSDClaim(key, value, digestsToDisclosures)] as const)
+								? (function () {
+										const [digest, digestedDisclosures] = SDPayload.digestSDClaim(
+											key,
+											value,
+											digestsToDisclosures
+										);
+										digestsToDisclosures = digestedDisclosures;
+										return [key, digest] as const;
+								  })()
 								: (function () {
 										// nested properties could be selectively disclosable, so recursively generate digests, disclosures, if applicable
-										const nestedSDPayload = SDPayload.generateSDPayload(
+										const [nestedSDPayload, digestedDisclosures] = SDPayload.generateSDPayload(
 											value as JSONObject,
 											sdMap.get(key)!.children!,
 											digestsToDisclosures
 										);
-
+										digestsToDisclosures = digestedDisclosures;
 										// compute digest of nested selectively disclosable fields, if applicable
 										return sdMap.has(key) && sdMap.get(key)!.sd
-											? [key, SDPayload.digestSDClaim(key, nestedSDPayload, digestsToDisclosures)]
+											? (function () {
+													const [digest, digestedDisclosures] = SDPayload.digestSDClaim(
+														key,
+														nestedSDPayload,
+														digestsToDisclosures
+													);
+													digestsToDisclosures = digestedDisclosures;
+													return [key, digest] as const;
+											  })()
 											: (function () {
 													// object is not selectively disclosable, so assign nested selectively disclosable fields as is
 													sdPayload[key] = nestedSDPayload;
@@ -252,9 +277,6 @@ export class SDPayload {
 			)
 		);
 
-		// return payload, if no digests were generated
-		if (digests.size === 0) return sdPayload;
-
 		// otherwise, append digests to payload
 		sdPayload[SDJwt.DIGESTS_KEY] = Array.from(digests).concat(
 			sdMap.decoyMode !== DecoyMode.NONE && sdMap.decoys > 0
@@ -262,7 +284,7 @@ export class SDPayload {
 						const numDecoys = (function () {
 							switch (sdMap.decoyMode) {
 								case DecoyMode.RANDOM:
-									return Math.floor(Math.random() * sdMap.decoys);
+									return Math.floor(Math.random() * (sdMap.decoys + 1));
 								case DecoyMode.FIXED:
 									return sdMap.decoys;
 								default:
@@ -270,12 +292,16 @@ export class SDPayload {
 							}
 						})();
 
-						return Array.from({ length: numDecoys }, () => SDPayload.digest(SDPayload.generateSalt()));
+						const withDecoys = Array(numDecoys)
+							.fill('')
+							.map(() => SDPayload.digest(SDPayload.generateSalt()));
+
+						return withDecoys;
 				  })()
 				: []
 		);
 
-		return sdPayload;
+		return [sdPayload, digestsToDisclosures];
 	}
 
 	/**
@@ -284,11 +310,12 @@ export class SDPayload {
 	 * @param disclosureMap disclosure map, containing selectively disclosable fields, per payload field recursively, decoy mode and number of decoys for issuance.
 	 */
 	static createSDPayload(fullPayload: JSONObject, disclosureMap: SDMap): SDPayload {
-		const digestedDisclosures = new Map<string, SDisclosure>();
-		return new SDPayload(
-			this.generateSDPayload(fullPayload, disclosureMap, digestedDisclosures),
-			digestedDisclosures
+		const [undisclosedPayload, digestedDisclosures] = this.generateSDPayload(
+			fullPayload,
+			disclosureMap,
+			new Map<string, SDisclosure>()
 		);
+		return new SDPayload(undisclosedPayload, digestedDisclosures);
 	}
 
 	/**
@@ -322,7 +349,7 @@ export class SDPayload {
 				.map((disclosure) => {
 					return SDisclosure.parse(disclosure);
 				})
-				.reduce((map, sd) => map.set(sd.disclosure, sd), new Map<string, SDisclosure>())
+				.reduce((map, sd) => map.set(SDPayload.digest(sd.disclosure), sd), new Map<string, SDisclosure>())
 		);
 	}
 }

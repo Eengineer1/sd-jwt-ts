@@ -2,6 +2,7 @@ import { DecoyMode, fromJSON as DecoyModefromJSON } from './DecoyMode.js';
 import { SDField } from './SDField.js';
 import { SDJwt } from './SDJwt.js';
 import { SDisclosure } from './SDisclosure.js';
+import { isJSONObject } from './utils/eval.js';
 import { JSONObject, JSONValue } from './utils/types.js';
 
 export class SDMap extends Map<string, SDField> {
@@ -54,12 +55,12 @@ export class SDMap extends Map<string, SDField> {
 	): SDMap {
 		const fields = new Map<string, SDField>();
 		for (const [key, value] of Object.entries(fullPayload)) {
-			const sd = !Object.prototype.hasOwnProperty.call(undisclosedPayload, key);
+			const sd = typeof undisclosedPayload?.[key] === 'undefined' || !(key in undisclosedPayload);
 			fields.set(
 				key,
 				new SDField(
 					sd,
-					value && typeof value === 'object' && !Array.isArray(value)
+					value && isJSONObject(value) && undisclosedPayload[key] && isJSONObject(undisclosedPayload[key])
 						? SDMap.generateSDMap(value, undisclosedPayload[key]! as JSONObject, decoyMode, decoys)
 						: null
 				)
@@ -71,7 +72,7 @@ export class SDMap extends Map<string, SDField> {
 	/**
 	 * Generate SDMap based on set of simplified JSON paths.
 	 */
-	generateSDMapFromJSONPaths(jsonPaths: string[], decoyMode: DecoyMode = DecoyMode.NONE, decoys: number = 0) {
+	static generateSDMapFromJSONPaths(jsonPaths: string[], decoyMode: DecoyMode = DecoyMode.NONE, decoys: number = 0) {
 		return SDMap.doGenerateSDMap(jsonPaths, decoyMode, decoys, new Set(jsonPaths), '');
 	}
 
@@ -83,26 +84,34 @@ export class SDMap extends Map<string, SDField> {
 		parent: string
 	): SDMap {
 		const pathMap = jsonPaths
-			.map((path) => path.split('.'))
-			.reduce((map, path) => {
-				const key = path.shift()!;
-				const value = path.join('.');
-				return map.set(key, map.has(key) ? map.get(key)!.concat(value) : [value]);
+			.map((path) => {
+				const [first, ...rest] = path.split('.');
+
+				if (!first) throw new Error('Invalid JSON path');
+
+				if (rest.length === 0) return { first, second: '' };
+
+				return { first, second: rest.join('.') };
+			})
+			.reduce((acc, { first, second }) => {
+				if (!acc.has(first)) acc.set(first, []);
+
+				if (second) acc.set(first, [...acc.get(first)!, second]);
+
+				return acc;
 			}, new Map<string, string[]>());
 
-		const fields = new Map<string, SDField>();
-
-		for (const [key, value] of pathMap.entries()) {
-			const currentPath = parent ? `${parent}.${key}` : key;
-
-			fields.set(
+		const fields = Array.from(pathMap.entries()).reduce((acc, [key, value]) => {
+			const currentPath = [parent, key].filter(Boolean).join('.');
+			acc.set(
 				key,
 				new SDField(
-					sdPaths.has(key),
+					sdPaths.has(currentPath),
 					value.length ? SDMap.doGenerateSDMap(value, decoyMode, decoys, sdPaths, currentPath) : null
 				)
 			);
-		}
+			return acc;
+		}, new Map<string, SDField>());
 
 		return new SDMap(fields, decoyMode, decoys);
 	}
@@ -112,12 +121,7 @@ export class SDMap extends Map<string, SDField> {
 		value: JSONValue,
 		digestedDisclosure: ReadonlyMap<string, SDisclosure>
 	): SDField {
-		return new SDField(
-			sd,
-			value && typeof value === 'object' && !Array.isArray(value)
-				? SDMap.regenerateSDMap(value, digestedDisclosure)
-				: null
-		);
+		return new SDField(sd, value && isJSONObject(value) ? SDMap.regenerateSDMap(value, digestedDisclosure) : null);
 	}
 
 	/**
@@ -125,21 +129,15 @@ export class SDMap extends Map<string, SDField> {
 	 * Used for parsing SD-JWTs.
 	 */
 	static regenerateSDMap(
-		undisclosedPayload: JSONObject,
+		undisclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] },
 		digestedDisclosures: ReadonlyMap<string, SDisclosure>
 	): SDMap {
 		return new SDMap(
 			new Map<string, SDField>(
 				(
-					(
-						Object.entries(undisclosedPayload)?.filter(([key]) => key === SDJwt.DIGESTS_KEY) as [
-							string,
-							string[],
-						][]
-					)
-						?.flatMap(([, digests]) => digests)
-						?.filter((sdEntry) => digestedDisclosures.has(sdEntry))
-						?.map((sdEntry) => digestedDisclosures.get(sdEntry)!)
+					undisclosedPayload[SDJwt.DIGESTS_KEY]
+						?.filter((sdEntry) => Array.from(digestedDisclosures.values()).find((sd) => sd.key === sdEntry))
+						?.map((sdEntry) => Array.from(digestedDisclosures.values()).find((sd) => sd.key === sdEntry)!)
 						?.map(
 							(sd) => [sd.key, SDMap.regenerateSDField(true, sd.value, digestedDisclosures)] as const
 						) || []
@@ -150,7 +148,11 @@ export class SDMap extends Map<string, SDField> {
 							([key, value]) => [key, SDMap.regenerateSDField(false, value, digestedDisclosures)] as const
 						)
 				)
-			)
+			),
+			DecoyMode.FIXED, // parse will always be called with a decoyMode of FIXED, as number of decoys is known
+			undisclosedPayload[SDJwt.DIGESTS_KEY]?.filter(
+				(sdEntry) => !Array.from(digestedDisclosures.values()).find((sd) => sd.key === sdEntry)
+			)?.length || 0
 		);
 	}
 

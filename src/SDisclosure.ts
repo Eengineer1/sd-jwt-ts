@@ -19,10 +19,10 @@ export class SDisclosure {
 		if (
 			typeof salt !== 'string' ||
 			typeof key !== 'string' ||
-			typeof value !== 'object' ||
-			typeof value !== 'string' ||
-			typeof value !== 'number' ||
-			typeof value !== 'boolean'
+			(typeof value !== 'object' &&
+				typeof value !== 'string' &&
+				typeof value !== 'number' &&
+				typeof value !== 'boolean')
 		) {
 			throw new Error('Invalid selective disclosure');
 		}

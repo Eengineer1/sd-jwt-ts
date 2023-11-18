@@ -1,7 +1,11 @@
+import { isJSONObject } from './utils/eval.js';
 import { JSONValue } from './utils/types.js';
 
 /**
  * Mode for adding decoy digests on SD-JWT issuance.
+ * NONE: no decoy digests are added
+ * FIXED: a fixed number of decoy digests are added
+ * RANDOM: a random number of decoy digests are added
  */
 export enum DecoyMode {
 	NONE = 'NONE', // literal string value + ordinal value (0)
@@ -10,7 +14,7 @@ export enum DecoyMode {
 }
 
 export const fromJSON = (json: JSONValue): DecoyMode => {
-	if (typeof json !== 'string' && typeof json !== 'number' && typeof json !== 'boolean' && !Array.isArray(json)) {
+	if (isJSONObject(json)) {
 		return typeof json?.['name']?.valueOf() === 'string'
 			? (json['name'] as DecoyMode)
 			: (function () {
