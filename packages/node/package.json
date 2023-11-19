@@ -31,5 +31,8 @@
         "verifiable-credentials"
     ],
     "author": "Eengineer1",
-    "license": "ISC"
+    "license": "ISC",
+    "engines": {
+        "node": ">=18.12.0"
+    }
 }

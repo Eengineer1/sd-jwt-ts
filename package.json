@@ -1,5 +1,6 @@
 {
   "name": "sd-jwt-ts",
+  "private": true,
   "version": "1.0.0",
   "description": "[![GitHub release (latest by date)](https://img.shields.io/github/v/release/cheqd/.github?color=green&label=stable%20release&style=flat-square)](https://github.com/cheqd/.github/releases/latest) ![GitHub Release Date](https://img.shields.io/github/release-date/cheqd/.github?color=green&style=flat-square) [![GitHub license](https://img.shields.io/github/license/cheqd/.github?color=blue&style=flat-square)](https://github.com/cheqd/.github/blob/main/LICENSE)",
   "main": "src/index.ts",
@@ -46,5 +47,8 @@
   "dependencies": {
     "jose": "^5.1.0",
     "uint8arrays": "^4.0.6"
+  },
+  "engines": {
+    "node": ">=18.12.0"
   }
 }
