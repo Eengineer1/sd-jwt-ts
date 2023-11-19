@@ -23,7 +23,7 @@
     },
     "scripts": {
         "build": "rm -rf dist && tsc",
-        "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --colors --passWithNoTests --maxWorkers 1 --maxConcurrency 1",
+        "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest tests --colors --passWithNoTests --maxWorkers 1 --maxConcurrency 1",
         "format": "prettier --write 'src/**/*.{js,ts,cjs,mjs}' 'tests/**/*.{js,ts,cjs,mjs}'"
     },
     "keywords": [
