@@ -1,0 +1,7 @@
+{
+	"deps": {
+		"bump": "inherit",
+        "release": "patch"
+	},
+    "tagFormat": "{version}"
+}

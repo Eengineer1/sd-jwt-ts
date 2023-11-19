@@ -1,0 +1,16 @@
+{
+    "version": "independent",
+    "npmClient": "pnpm",
+    "command": {
+        "version": {
+            "allowBranch": ["main", "develop"],
+            "conventionalCommits": true
+        },
+        "publish": {
+            "allowBranch": ["main", "develop"],
+            "conventionalCommits": true,
+            "excludePrivate": true,
+            "yes": true
+        }
+    }
+}

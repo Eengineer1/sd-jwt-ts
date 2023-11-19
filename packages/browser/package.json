@@ -1,0 +1,38 @@
+{
+    "name": "@eengineer1/sd-jwt-ts-browser",
+    "version": "1.0.0",
+    "description": "[![GitHub release (latest by date)](https://img.shields.io/github/v/release/cheqd/.github?color=green&label=stable%20release&style=flat-square)](https://github.com/cheqd/.github/releases/latest) ![GitHub Release Date](https://img.shields.io/github/release-date/cheqd/.github?color=green&style=flat-square) [![GitHub license](https://img.shields.io/github/license/cheqd/.github?color=blue&style=flat-square)](https://github.com/cheqd/.github/blob/main/LICENSE)",
+    "main": "./src/index.ts",
+    "type": "module",
+    "types": "./dist/browser/src/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "*": [
+                "*",
+                "dist/*",
+                "dist/*/index"
+            ]
+        }
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/browser/src/index.d.ts",
+            "import": "./dist/browser/src/index.js",
+            "require": "./dist/browser/src/index.js"
+        }
+    },
+    "scripts": {
+        "build": "rm -rf dist && tsc",
+        "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --colors --passWithNoTests --maxWorkers 1 --maxConcurrency 1",
+        "format": "prettier --write 'src/**/*.{js,ts,cjs,mjs}' 'tests/**/*.{js,ts,cjs,mjs}'"
+    },
+    "keywords": [
+        "sd-jwt",
+        "verifiable-credentials"
+    ],
+    "author": "Eengineer1",
+    "license": "ISC",
+    "dependencies": {
+        "crypto": "npm:crypto-browserify@3.12.0"
+    }
+}

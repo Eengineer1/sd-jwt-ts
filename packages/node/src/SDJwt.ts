@@ -5,13 +5,14 @@ import { SDMap } from './SDMap.js';
 import { SDPayload } from './SDPayload.js';
 import { SDisclosure } from './SDisclosure.js';
 import { VerificationResult, defaultVerificationResult } from './VerificationResult.js';
-import { JSONObject, JSONWebKey } from './utils/types.js';
+import { JSONObject, JSONWebKey, UndisclosedPayload } from './utils/types.js';
 
 export class SDJwt extends Object {
-	static readonly DIGESTS_KEY = '_sd';
-	static readonly SEPARATOR = '~';
+	static readonly DIGESTS_KEY = '_sd' as const;
+	static readonly DIGESTS_ALG_KEY = '_sd_alg' as const;
+	static readonly SEPARATOR = '~' as const;
 	static readonly SD_JWT_PATTERN =
-		'^(?<sdjwt>(?<header>[A-Za-z0-9-_]+).(?<body>[A-Za-z0-9-_]+).(?<signature>[A-Za-z0-9-_]+))(?<disclosures>(~([A-Za-z0-9-_]+))+)?(~(?<holderjwt>([A-Za-z0-9-_]+).([A-Za-z0-9-_]+).([A-Za-z0-9-_]+))?)?$';
+		'^(?<sdjwt>(?<header>[A-Za-z0-9-_]+).(?<body>[A-Za-z0-9-_]+).(?<signature>[A-Za-z0-9-_]+))(?<disclosures>(~([A-Za-z0-9-_]+))+)?(~(?<holderjwt>([A-Za-z0-9-_]+).([A-Za-z0-9-_]+).([A-Za-z0-9-_]+))?)?$' as const;
 
 	/**
 	 * Encoded disclosures, included in this SD-JWT.
@@ -20,7 +21,7 @@ export class SDJwt extends Object {
 
 	readonly disclosureObjects: SDisclosure[];
 
-	readonly undisclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] };
+	readonly undisclosedPayload: UndisclosedPayload;
 
 	readonly fullPayload: JSONObject;
 
@@ -31,17 +32,17 @@ export class SDJwt extends Object {
 	/**
 	 * The algorithm used to sign this SD-JWT, e.g. 'ES256K-R', 'EdDSA, included in the header.
 	 */
-	readonly algorithm?: string | null;
+	readonly algorithm: string;
 
 	/**
 	 * The key id of the key used to sign this SD-JWT, included in the header.
 	 */
-	readonly keyId?: string | null;
+	readonly keyId?: string;
 
 	/**
 	 * the signature key in JWK format, included in the header, if present.
 	 */
-	readonly jwk?: JSONWebKey | null;
+	readonly jwk?: JSONWebKey;
 
 	constructor(
 		public readonly jwt: string,
@@ -57,7 +58,13 @@ export class SDJwt extends Object {
 		this.fullPayload = sdPayload.fullPayload;
 		this.digestedDisclosures = sdPayload.digestedDisclosures;
 		this.sdMap = sdPayload.sdMap;
-		this.algorithm = header.alg ? (header.alg as string) : null;
+		this.algorithm = header.alg
+			? (header.alg as string)
+			: (function () {
+					throw new Error('Invalid SD-JWT');
+			  })();
+		this.keyId = header.kid ? (header.kid as string) : undefined;
+		this.jwk = header.jwk ? (header.jwk as JSONWebKey) : undefined;
 	}
 
 	override toString() {

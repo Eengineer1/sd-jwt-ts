@@ -3,7 +3,7 @@ import { SDField } from './SDField.js';
 import { SDJwt } from './SDJwt.js';
 import { SDMap } from './SDMap.js';
 import { SDisclosure } from './SDisclosure.js';
-import { JSONObject, JSONValue } from './utils/types.js';
+import { JSONObject, JSONValue, UndisclosedPayload } from './utils/types.js';
 import { createHash, getRandomValues } from 'crypto';
 import { DecoyMode } from './DecoyMode.js';
 import { isJSONObject, isSDDigestsValue } from './utils/eval.js';
@@ -30,7 +30,7 @@ export class SDPayload {
 	 * @param digestedDisclosures digested disclosures, as appended to the JWT.
 	 */
 	private constructor(
-		readonly undisclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] },
+		readonly undisclosedPayload: UndisclosedPayload,
 		readonly digestedDisclosures: ReadonlyMap<string, SDisclosure> = new Map()
 	) {
 		this.sDisclosures = Array.from(digestedDisclosures.values());
@@ -42,7 +42,7 @@ export class SDPayload {
 		payload: JSONObject,
 		verificationDisclosureMap?: Map<string, SDisclosure> | null
 	): [JSONObject, Map<string, SDisclosure> | undefined | null] {
-		const disclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] } = {};
+		const disclosedPayload: UndisclosedPayload = {};
 		for (const [key, value] of Object.entries(payload)) {
 			if (key === SDJwt.DIGESTS_KEY) {
 				if (!isSDDigestsValue(value)) throw new Error(`SD-JWT contains invalid ${SDJwt.DIGESTS_KEY} field`);
@@ -73,6 +73,7 @@ export class SDPayload {
 		}
 
 		delete disclosedPayload[SDJwt.DIGESTS_KEY];
+		delete disclosedPayload[SDJwt.DIGESTS_ALG_KEY];
 
 		return [disclosedPayload, verificationDisclosureMap];
 	}
@@ -124,8 +125,16 @@ export class SDPayload {
 				})
 				.concat(
 					(currPayloadObject[SDJwt.DIGESTS_KEY] as string[])
-						?.filter((digest) => this.digestedDisclosures.has(digest))
-						?.map((digest) => this.digestedDisclosures.get(digest)!)
+						?.filter(
+							(digest) =>
+								this.digestedDisclosures.has(digest) ||
+								Array.from(this.digestedDisclosures.values()).find((sd) => sd.key === digest)
+						)
+						?.map(
+							(digest) =>
+								this.digestedDisclosures.get(digest) ||
+								Array.from(this.digestedDisclosures.values()).find((sd) => sd.key === digest)!
+						)
 						?.filter((sd) => sdMap.get(sd.key)?.sd)
 						?.flatMap((sd) =>
 							[sd.disclosure].concat(
@@ -199,7 +208,7 @@ export class SDPayload {
 		return [SDPayload.digest(disclosure.disclosure), digestsToDisclosures.set(digest, disclosure)];
 	}
 
-	private static removeSDFields(payload: JSONObject, sdMap: SDMap): JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] } {
+	private static removeSDFields(payload: JSONObject, sdMap: SDMap): UndisclosedPayload {
 		return Object.fromEntries(
 			Object.entries(payload)
 				.filter(([key]) => !sdMap.has(key) || !sdMap.get(key)!.sd)
@@ -220,7 +229,7 @@ export class SDPayload {
 		payload: JSONObject,
 		sdMap: SDMap,
 		digestsToDisclosures: Map<string, SDisclosure>
-	): [JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] }, Map<string, SDisclosure>] {
+	): [UndisclosedPayload, Map<string, SDisclosure>] {
 		const sdPayload = SDPayload.removeSDFields(payload, sdMap);
 		const digests = new Set<string>(
 			Object.keys(
@@ -278,28 +287,33 @@ export class SDPayload {
 		);
 
 		// otherwise, append digests to payload
-		sdPayload[SDJwt.DIGESTS_KEY] = Array.from(digests).concat(
-			sdMap.decoyMode !== DecoyMode.NONE && sdMap.decoys > 0
-				? (function () {
-						const numDecoys = (function () {
-							switch (sdMap.decoyMode) {
-								case DecoyMode.RANDOM:
-									return Math.floor(Math.random() * (sdMap.decoys + 1));
-								case DecoyMode.FIXED:
-									return sdMap.decoys;
-								default:
-									return 0;
-							}
-						})();
+		sdPayload[SDJwt.DIGESTS_KEY] = Array.from(digests)
+			.concat(
+				sdMap.decoyMode !== DecoyMode.NONE && sdMap.decoys > 0
+					? (function () {
+							const numDecoys = (function () {
+								switch (sdMap.decoyMode) {
+									case DecoyMode.RANDOM:
+										return Math.floor(Math.random() * sdMap.decoys) + 1;
+									case DecoyMode.FIXED:
+										return sdMap.decoys;
+									default:
+										return 0;
+								}
+							})();
 
-						const withDecoys = Array(numDecoys)
-							.fill('')
-							.map(() => SDPayload.digest(SDPayload.generateSalt()));
+							const withDecoys = Array(numDecoys)
+								.fill('')
+								.map(() => SDPayload.digest(SDPayload.generateSalt()));
 
-						return withDecoys;
-				  })()
-				: []
-		);
+							return withDecoys;
+					  })()
+					: []
+			)
+			.sort(() => Math.random() - 0.5);
+
+		// define digests alg
+		sdPayload[SDJwt.DIGESTS_ALG_KEY] = 'sha-256';
 
 		return [sdPayload, digestsToDisclosures];
 	}

@@ -3,17 +3,20 @@ import { SDField } from './SDField.js';
 import { SDJwt } from './SDJwt.js';
 import { SDisclosure } from './SDisclosure.js';
 import { isJSONObject } from './utils/eval.js';
-import { JSONObject, JSONValue } from './utils/types.js';
+import { JSONObject, JSONValue, UndisclosedPayload } from './utils/types.js';
 
 export class SDMap extends Map<string, SDField> {
-	readonly size: number;
+	private readonly _size: number;
+	get size() {
+		return this._size;
+	}
 	constructor(
 		public readonly fields: ReadonlyMap<string, SDField>,
 		public readonly decoyMode: DecoyMode = DecoyMode.NONE,
 		public readonly decoys: number = 0
 	) {
 		super();
-		this.size = fields.size;
+		this._size = fields.size;
 		this.entries = fields.entries.bind(fields);
 		this.keys = fields.keys.bind(fields);
 		this.values = fields.values.bind(fields);
@@ -129,7 +132,7 @@ export class SDMap extends Map<string, SDField> {
 	 * Used for parsing SD-JWTs.
 	 */
 	static regenerateSDMap(
-		undisclosedPayload: JSONObject & { [SDJwt.DIGESTS_KEY]?: string[] },
+		undisclosedPayload: UndisclosedPayload,
 		digestedDisclosures: ReadonlyMap<string, SDisclosure>
 	): SDMap {
 		return new SDMap(
