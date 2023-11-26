@@ -27,7 +27,7 @@ jobs:
                 cache: "pnpm"
 
             - name: "Clean install dependencies"
-              run: pnpm install --frozen-lockfile
+              run: pnpm install --no-frozen-lockfile
 
             - name: "Run npm build"
               run: pnpm build
