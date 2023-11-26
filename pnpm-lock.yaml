@@ -31,10 +31,8 @@ importers:
 
   packages/browser:
     specifiers:
-      '@eengineer1/sd-jwt-ts-node': workspace:*
       crypto: npm:crypto-browserify@3.12.0
     dependencies:
-      '@eengineer1/sd-jwt-ts-node': link:../node
       crypto: /crypto-browserify/3.12.0
 
   packages/node:
