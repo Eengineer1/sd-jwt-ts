@@ -25,7 +25,8 @@
   "scripts": {
     "build": "lerna run build",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --colors --passWithNoTests --maxWorkers 1 --maxConcurrency 1",
-    "format": "for /d %i in (packages/*) do if exist packages/%i/package.json pnpm run -C packages/%i format"
+    "format": "for /d %i in (packages/*) do if exist packages/%i/package.json pnpm run -C packages/%i format",
+    "release": "multi-semantic-release"
   },
   "keywords": [
     "sd-jwt",

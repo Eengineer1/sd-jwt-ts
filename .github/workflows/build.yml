@@ -41,15 +41,19 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - uses: pnpm/action-setup@v2
+              with:
+                version: 8
+
             - uses: actions/setup-node@v4
               with:
                 node-version: 18
                 cache: "pnpm"
 
             - name: "Clean install dependencies"
-              run: pnpm install --frozen-lockfile
+              run: pnpm install --no-frozen-lockfile
 
-            - name: "Run pnpm build"
+            - name: "Run npm build"
               run: pnpm build
 
             - name: 'Run pnpm test'
