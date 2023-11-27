@@ -28,15 +28,10 @@
                     { "type": "test", "release": false },
                     { "scope": "no-release", "release": false },
                     { "scope": "release", "release": "patch" }
-                ],
-                "presetConfig": true
+                ]
             }
         ],
-        [ "@semantic-release/release-notes-generator",
-            {
-                "presetConfig": true
-            }
-        ],
+        "@semantic-release/release-notes-generator",
         [ "@semantic-release/changelog",
             {
                 "changelogTitle": "# Changelog"
