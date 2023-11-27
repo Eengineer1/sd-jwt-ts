@@ -12,7 +12,7 @@
 
 Checkout the [documentation regarding SD-JWTs](https://docs.walt.id/v/ssikit/concepts/selective-disclosure), to find out more.
 
-## What is the SD-JWT library?
+## What is SD-JWT?
 
 This library implements the **Selective Disclosure JWT (SD-JWT)**
 specification:  [draft-ietf-oauth-selective-disclosure-jwt-06](https://datatracker.ietf.org/doc/draft-ietf-oauth-selective-disclosure-jwt/06/).
