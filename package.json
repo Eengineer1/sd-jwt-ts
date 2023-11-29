@@ -30,7 +30,10 @@
     "build": "lerna run build",
     "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest --colors --passWithNoTests --maxWorkers 1 --maxConcurrency 1",
     "format": "for /d %i in (packages/*) do if exist packages/%i/package.json pnpm run -C packages/%i format",
-    "release": "multi-semantic-release"
+    "release": "for /d %i in (packages/*) do if exist packages/%i/package.json pnpm run -C packages/%i release ",
+    "release:debug": "for /d %i in (packages/*) do if exist packages/%i/package.json pnpm run -C packages/%i release --debug",
+    "release:dry-run": "for /d %i in (packages/*) do if exist packages/%i/package.json pnpm run -C packages/%i release:dry-run",
+    "release:dry-run:debug": "for /d %i in (packages/*) do if exist packages/%i/package.json pnpm run -C packages/%i release:dry-run --debug"
   },
   "keywords": [
     "sd-jwt",
@@ -39,15 +42,14 @@
   "author": "Eengineer1",
   "license": "ISC",
   "devDependencies": {
-    "@qiwi/multi-semantic-release": "^7.1.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^11.1.0",
     "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^9.2.3",
+    "@semantic-release/github": "^9.2.4",
     "@semantic-release/npm": "^11.0.1",
     "@semantic-release/release-notes-generator": "^12.1.0",
     "@types/jest": "^29.5.10",
-    "@types/node": "^20.10.0",
+    "@types/node": "^20.10.1",
     "conventional-changelog-angular": "^7.0.0",
     "cross-env": "^7.0.3",
     "jest": "^29.7.0",
@@ -59,10 +61,10 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "jose": "^5.1.1",
+    "jose": "^5.1.2",
     "uint8arrays": "^4.0.9"
   },
   "engines": {
-    "node": ">=18.12.0"
+    "node": ">=18.17.0"
   }
 }

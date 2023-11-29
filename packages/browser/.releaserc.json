@@ -1,0 +1,4 @@
+{
+    "extends": "../../.releaserc.json",
+    "tagFormat": "@eengineer1/sd-jwt-ts-browser@${version}"
+}
