@@ -1,16 +1,17 @@
 {
-    "version": "independent",
-    "npmClient": "pnpm",
-    "command": {
-        "version": {
-            "allowBranch": ["main", "develop"],
-            "conventionalCommits": true
-        },
-        "publish": {
-            "allowBranch": ["main", "develop"],
-            "conventionalCommits": true,
-            "excludePrivate": true,
-            "yes": true
-        }
-    }
+	"version": "independent",
+	"npmClient": "pnpm",
+	"command": {
+		"version": {
+			"allowBranch": ["main", "develop"],
+			"conventionalCommits": true
+		},
+		"publish": {
+			"allowBranch": ["main", "develop"],
+			"conventionalCommits": true,
+			"excludePrivate": true,
+			"yes": true
+		}
+	},
+	"$schema": "node_modules/lerna/schemas/lerna-schema.json"
 }
