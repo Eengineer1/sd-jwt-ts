@@ -1,6 +1,6 @@
 {
     "name": "@eengineer1/sd-jwt-ts-node",
-    "version": "1.0.0-develop.1",
+    "version": "1.0.0-develop.2",
     "description": "[![GitHub release (latest by date)](https://img.shields.io/github/v/release/cheqd/.github?color=green&label=stable%20release&style=flat-square)](https://github.com/cheqd/.github/releases/latest) ![GitHub Release Date](https://img.shields.io/github/release-date/cheqd/.github?color=green&style=flat-square) [![GitHub license](https://img.shields.io/github/license/cheqd/.github?color=blue&style=flat-square)](https://github.com/cheqd/.github/blob/main/LICENSE)",
     "repository": {
         "type": "git",
