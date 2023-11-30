@@ -1,6 +1,6 @@
 # Changelog
 
-# [1.0.0-develop.2](https://github.com/Eengineer1/sd-jwt-ts/compare/@eengineer1/sd-jwt-ts-browser@1.0.0-develop.1...@eengineer1/sd-jwt-ts-browser@1.0.0-develop.2) (2023-11-30)
+## [1.0.0-develop.2](https://github.com/Eengineer1/sd-jwt-ts/compare/@eengineer1/sd-jwt-ts-browser@1.0.0-develop.1...@eengineer1/sd-jwt-ts-browser@1.0.0-develop.2) (2023-11-30)
 
 ## 1.0.0-develop.1 (2023-11-30)
 
