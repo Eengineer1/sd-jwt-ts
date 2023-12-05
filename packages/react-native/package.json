@@ -40,19 +40,12 @@
     "license": "ISC",
     "dependencies": {
         "crypto": "npm:react-native-quick-crypto@0.6.1",
-        "node:crypto": "npm:react-native-quick-crypto@0.6.1",
         "fs": "npm:react-native-level-fs@3.0.1",
-        "node:fs": "npm:react-native-level-fs@3.0.1",
         "buffer": "npm:buffer@6.0.3",
-        "node:buffer": "npm:buffer@6.0.3",
         "util": "npm:util@0.12.5",
-        "node:util": "npm:util@0.12.5",
         "http": "npm:@tradle/react-native-http@2.0.1",
-        "node:http": "npm:@tradle/react-native-http@2.0.1",
         "https": "npm:https-browserify@1.0.0",
-        "node:https": "npm:https-browserify@1.0.0",
-        "events": "npm:events@3.3.0",
-        "node:events": "npm:events@3.3.0"
+        "events": "npm:events@3.3.0"
     },
     "engines": {
         "node": ">=18.17.0"
