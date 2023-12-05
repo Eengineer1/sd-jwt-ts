@@ -1,6 +1,6 @@
 {
     "extends": "../../.releaserc.json",
-    "tagFormat": "@eengineer1/sd-jwt-ts-node@${version}",
+    "tagFormat": "@eengineer1/sd-jwt-ts-react-native@${version}",
     "plugins": [
         [ "@semantic-release/commit-analyzer",
             {
@@ -21,9 +21,9 @@
                     { "type": "test", "release": false },
                     { "scope": "no-release", "release": false },
                     { "scope": "release", "release": "patch" },
-                    { "scope": "release-node", "release": "patch" },
+                    { "scope": "release-node", "release": false },
                     { "scope": "release-browser", "release": false },
-                    { "scope": "release-react-native", "release": false }
+                    { "scope": "release-react-native", "release": "patch" }
                 ]
             }
         ],

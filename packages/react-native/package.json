@@ -1,0 +1,60 @@
+{
+    "name": "@eengineer1/sd-jwt-ts-react-native",
+    "version": "1.0.0",
+    "description": "[![GitHub release (latest by date)](https://img.shields.io/github/v/release/cheqd/.github?color=green&label=stable%20release&style=flat-square)](https://github.com/cheqd/.github/releases/latest) ![GitHub Release Date](https://img.shields.io/github/release-date/cheqd/.github?color=green&style=flat-square) [![GitHub license](https://img.shields.io/github/license/cheqd/.github?color=blue&style=flat-square)](https://github.com/cheqd/.github/blob/main/LICENSE)",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Eengineer1/sd-jwt-ts.git"
+    },
+    "main": "./src/index.ts",
+    "type": "module",
+    "types": "./dist/react-native/src/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "*": [
+                "*",
+                "dist/*",
+                "dist/*/index"
+            ]
+        }
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/react-native/src/index.d.ts",
+            "import": "./dist/react-native/src/index.js",
+            "require": "./dist/react-native/src/index.js"
+        }
+    },
+    "scripts": {
+        "build": "rm -rf dist && tsc",
+        "test": "cross-env NODE_OPTIONS='--experimental-vm-modules' jest tests --colors --passWithNoTests --maxWorkers 1 --maxConcurrency 1",
+        "format": "prettier --write 'src/**/*.{js,ts,cjs,mjs}' 'tests/**/*.{js,ts,cjs,mjs}'",
+        "release": "semantic-release",
+        "release:dry-run": "semantic-release --dry-run"
+    },
+    "keywords": [
+        "sd-jwt",
+        "verifiable-credentials"
+    ],
+    "author": "Eengineer1",
+    "license": "ISC",
+    "dependencies": {
+        "crypto": "npm:react-native-quick-crypto@0.6.1",
+        "node:crypto": "npm:react-native-quick-crypto@0.6.1",
+        "fs": "npm:react-native-level-fs@3.0.1",
+        "node:fs": "npm:react-native-level-fs@3.0.1",
+        "buffer": "npm:buffer@6.0.3",
+        "node:buffer": "npm:buffer@6.0.3",
+        "util": "npm:util@0.12.5",
+        "node:util": "npm:util@0.12.5",
+        "http": "npm:@tradle/react-native-http@2.0.1",
+        "node:http": "npm:@tradle/react-native-http@2.0.1",
+        "https": "npm:https-browserify@1.0.0",
+        "node:https": "npm:https-browserify@1.0.0",
+        "events": "npm:events@3.3.0",
+        "node:events": "npm:events@3.3.0"
+    },
+    "engines": {
+        "node": ">=18.17.0"
+    }
+}

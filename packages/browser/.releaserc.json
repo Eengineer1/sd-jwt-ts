@@ -1,4 +1,45 @@
 {
     "extends": "../../.releaserc.json",
-    "tagFormat": "@eengineer1/sd-jwt-ts-browser@${version}"
+    "tagFormat": "@eengineer1/sd-jwt-ts-browser@${version}",
+    "plugins": [
+        [ "@semantic-release/commit-analyzer",
+            {
+                "preset": "angular",
+                "releaseRules": [
+                    { "breaking": true, "release": "major" },
+                    { "type": "feat", "release": "minor" },
+                    { "type": "fix", "release": "patch" },
+                    { "type": "perf", "release": "patch" },
+                    { "type": "build", "release": "patch" },
+                    { "scope": "security", "release": "patch" },
+                    { "type": "chore", "release": false },
+                    { "type": "ci", "release": false },
+                    { "type": "docs", "release": false },
+                    { "type": "refactor", "release": false },
+                    { "type": "revert", "release": false },
+                    { "type": "style", "release": false },
+                    { "type": "test", "release": false },
+                    { "scope": "no-release", "release": false },
+                    { "scope": "release", "release": "patch" },
+                    { "scope": "release-node", "release": false },
+                    { "scope": "release-browser", "release": "patch" },
+                    { "scope": "release-react-native", "release": false }
+                ]
+            }
+        ],
+        "@semantic-release/release-notes-generator",
+        [ "@semantic-release/changelog",
+            {
+                "changelogTitle": "# Changelog"
+            }
+        ],
+        "@semantic-release/npm",
+        [ "@semantic-release/git",
+            {
+                "assets": [ "package.json", "CHANGELOG.md" ],
+                "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+            }
+        ],
+        "@semantic-release/github"
+    ]
 }
