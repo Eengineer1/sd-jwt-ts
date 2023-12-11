@@ -63,7 +63,7 @@
   },
   "dependencies": {
     "jose": "^5.1.2",
-    "uint8arrays": "^4.0.9"
+    "uint8arrays": "^5.0.0"
   },
   "engines": {
     "node": ">=18.17.0"
