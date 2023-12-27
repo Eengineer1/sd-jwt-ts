@@ -6,6 +6,7 @@ export * from '../../node/src/SDisclosure.js';
 export * from '../../node/src/DecoyMode.js';
 export * from '../../node/src/AsyncJWTCryptoProvider.js';
 export * from '../../node/src/JWTCryptoProvider.js';
+export * from '../../node/src/VerificationResult.js';
 export * from '../../node/src/providers/CompactAsyncJWTCryptoProvider.js';
 export * from '../../node/src/utils/types.js';
 export * from '../../node/src/utils/eval.js';
