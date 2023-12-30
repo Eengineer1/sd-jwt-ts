@@ -109,9 +109,10 @@ export class SDJwt extends Object {
 	/**
 	 * Verify SD-JWT by checking the signature and matching the disclosures against the digests in the payload.
 	 * @param jwtCryptoProvider synchronous JWT crypto provider to use for signature verification, that implements standard JWT signing and verification.
+	 * @param options optional pass-through options.
 	 */
-	verify(jwtCryptoProvider: JWTCryptoProvider): VerificationResult<SDJwt> {
-		const jwtVerificationResult = jwtCryptoProvider.verify(this.jwt);
+	verify(jwtCryptoProvider: JWTCryptoProvider, options?: any): VerificationResult<SDJwt> {
+		const jwtVerificationResult = jwtCryptoProvider.verify(this.jwt, options);
 		return defaultVerificationResult(
 			this,
 			jwtVerificationResult.verified,
@@ -123,9 +124,10 @@ export class SDJwt extends Object {
 	/**
 	 * Verify SD-JWT by checking the signature and matching the disclosures against the digests in the payload.
 	 * @param jwtCryptoProvider asynchronous JWT crypto provider to use for signature verification, that implements standard JWT signing and verification.
+	 * @param options optional pass-through options.
 	 */
-	async verifyAsync(jwtCryptoProvider: AsyncJWTCryptoProvider): Promise<VerificationResult<SDJwt>> {
-		const jwtVerificationResult = await jwtCryptoProvider.verifyAsync(this.jwt);
+	async verifyAsync(jwtCryptoProvider: AsyncJWTCryptoProvider, options?: any): Promise<VerificationResult<SDJwt>> {
+		const jwtVerificationResult = await jwtCryptoProvider.verifyAsync(this.jwt, options);
 
 		return defaultVerificationResult(
 			this,
@@ -156,21 +158,24 @@ export class SDJwt extends Object {
 	 * Parse SD-JWT from string and verify it.
 	 * @param sdJwt SD-JWT string to parse and verify.
 	 * @param jwtCryptoProvider synchronous JWT crypto provider to use for signature verification, that implements standard JWT signing and verification.
+	 * @param options optional pass-through options.
 	 */
-	static parseAndVerify(sdJwt: string, jwtCryptoProvider: JWTCryptoProvider): VerificationResult<SDJwt> {
-		return SDJwt.parse(sdJwt).verify(jwtCryptoProvider);
+	static parseAndVerify(sdJwt: string, jwtCryptoProvider: JWTCryptoProvider, options?: any): VerificationResult<SDJwt> {
+		return SDJwt.parse(sdJwt).verify(jwtCryptoProvider, options);
 	}
 
 	/**
 	 * Parse SD-JWT from string and verify it.
 	 * @param sdJwt SD-JWT string to parse and verify.
 	 * @param jwtCryptoProvider asynchronous JWT crypto provider to use for signature verification, that implements standard JWT signing and verification.
+	 * @param options optional pass-through options.
 	 */
 	static async parseAndVerifyAsync(
 		sdJwt: string,
-		jwtCryptoProvider: AsyncJWTCryptoProvider
+		jwtCryptoProvider: AsyncJWTCryptoProvider,
+		options?: any
 	): Promise<VerificationResult<SDJwt>> {
-		return await SDJwt.parse(sdJwt).verifyAsync(jwtCryptoProvider);
+		return await SDJwt.parse(sdJwt).verifyAsync(jwtCryptoProvider, options);
 	}
 
 	private static createFromSignedJWT(signedJwt: string, sdPayload: SDPayload, withHolderJwt?: string | null): SDJwt {
@@ -184,6 +189,7 @@ export class SDJwt extends Object {
 	 * @param jwtCryptoProvider synchronous JWT crypto provider to use for signing, that implements standard JWT signing and verification.
 	 * @param keyId optional key ID of the signing key to be used, if required by the underlying crypto library.
 	 * @param withHolderJwt optional holder JWT as holder binding to include in the SD-JWT.
+	 * @param options optional pass-through options.
 	 */
 	static sign(
 		sdPayload: SDPayload,
@@ -206,6 +212,7 @@ export class SDJwt extends Object {
 	 * @param jwtCryptoProvider asynchronous JWT crypto provider to use for signing, that implements standard JWT signing and verification.
 	 * @param keyId optional key ID of the signing key to be used, if required by the underlying crypto library.
 	 * @param withHolderJwt optional holder JWT as holder binding to include in the SD-JWT.
+	 * @param options optional pass-through options.
 	 */
 	static async signAsync(
 		sdPayload: SDPayload,
