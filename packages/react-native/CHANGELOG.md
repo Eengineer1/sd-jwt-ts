@@ -1,6 +1,6 @@
 # Changelog
 
-# [1.0.0-develop.4](https://github.com/Eengineer1/sd-jwt-ts/compare/@eengineer1/sd-jwt-ts-react-native@1.0.0-develop.3...@eengineer1/sd-jwt-ts-react-native@1.0.0-develop.4) (2023-12-30)
+## [1.0.0-develop.4](https://github.com/Eengineer1/sd-jwt-ts/compare/@eengineer1/sd-jwt-ts-react-native@1.0.0-develop.3...@eengineer1/sd-jwt-ts-react-native@1.0.0-develop.4) (2023-12-30)
 
 ## [1.0.0-develop.3](https://github.com/Eengineer1/sd-jwt-ts/compare/@eengineer1/sd-jwt-ts-react-native@1.0.0-develop.2...@eengineer1/sd-jwt-ts-react-native@1.0.0-develop.3) (2023-12-27)
 
