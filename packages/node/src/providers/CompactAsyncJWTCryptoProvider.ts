@@ -13,7 +13,7 @@ export class CompactAsyncJWTCryptoProvider implements AsyncJWTCryptoProvider {
 
 	async signAsync(payload: JSONObject, keyId?: string | null): Promise<string> {
 		const jwt = await new SignJWT(payload)
-			.setProtectedHeader({ alg: this.algorithm, kid: keyId || undefined, typ: 'JWT' })
+			.setProtectedHeader({ alg: this.algorithm, kid: keyId || undefined, typ: 'vc+sd-jwt' })
 			.sign(this.keyParam, this.signOptions);
 		return jwt;
 	}

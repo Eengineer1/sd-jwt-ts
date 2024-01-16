@@ -196,7 +196,7 @@ export class SDJwt extends Object {
 		jwtCryptoProvider: JWTCryptoProvider,
 		keyId: string | undefined | null = null,
 		withHolderJwt: string | undefined | null = null,
-		typ: string = 'JWT',
+		typ: string = 'vc+sd-jwt',
 		options?: any
 	): SDJwt {
 		return SDJwt.createFromSignedJWT(
