@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.0.1-develop.1](https://github.com/Eengineer1/sd-jwt-ts/compare/@eengineer1/sd-jwt-ts-react-native@1.0.0...@eengineer1/sd-jwt-ts-react-native@1.0.1-develop.1) (2024-01-16)
+
 ## 1.0.0 (2023-12-30)
 
 ### Bug Fixes
